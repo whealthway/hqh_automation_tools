@@ -7,6 +7,7 @@ from core.plugin_loader import load_plugins
 # Built-in Tabs
 from ui.export_tab import ExportTab
 from ui.dashboard_tab import DashboardTab
+from ui.export_login_users import ExportLoginUsersTab
 # from ui.user_tab import UserTab  # Uncomment when ready
 
 
@@ -15,30 +16,45 @@ class MainWindow:
     def __init__(self, user):
         self.user = user
         self.root = tk.Tk()
-        self.root.title("Enterprise Automation Tool")
+        self.root.title("Automation Tool")
         self.root.geometry("1260x780")
 
         self._build_ui()
 
     def _build_ui(self):
+        # ✅ APPLY STYLE HERE (after root, before widgets)
+        style = ttk.Style(self.root)
+        style.theme_use("clam")  # better for color control
+
+        style.configure(
+            "TNotebook.Tab",
+            background="lightgray",
+            foreground="black",
+            padding=[10, 5]
+        )
+
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", "#3D90D7")],
+            foreground=[("selected", "white")]
+        )
+
         # ===== TOP HEADER =====
-        header = tk.Frame(self.root, bg="#2c3e50", height=50)
+        header = tk.Frame(self.root, bg="#3A59D1", height=50)
         header.pack(fill="x")
 
         title = tk.Label(
             header,
             text="Automation Dashboard",
-            fg="white",
-            bg="#2c3e50",
-            font=("Arial", 14, "bold")
+            font=("Arial", 14, "bold"),
+            bg=header.cget("bg")
         )
         title.pack(side="left", padx=10)
 
         user_label = tk.Label(
             header,
             text=f"Logged in as: {self.user['username']}",
-            fg="white",
-            bg="#2c3e50"
+            bg=header.cget("bg")
         )
         user_label.pack(side="right", padx=10)
 
@@ -63,13 +79,16 @@ class MainWindow:
         # Export Tab
         if has_permission(self.user, "export"):
             frame = tk.Frame(self.notebook)
+            frame.pack(fill="x", pady=10)
             ExportTab(frame)
-            self.notebook.add(frame, text="Export Patient Orders")
+            self.notebook.add(
+                frame, text="Export Patient Orders")
 
         if has_permission(self.user, "sbu_export"):
             frame = tk.Frame(self.notebook)
-            DashboardTab(frame)
-            self.notebook.add(frame, text="Export LoginUser SBU")
+            frame.pack(fill="x", pady=10)
+            ExportLoginUsersTab(frame)
+            self.notebook.add(frame, text="Export Login Users")
 
         # Dashboard Tab
         if has_permission(self.user, "dashboard"):
