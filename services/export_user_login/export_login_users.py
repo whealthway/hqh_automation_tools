@@ -8,18 +8,15 @@ from datetime import datetime
 # def export_to_csv(user, filters):
 
 
-def export_patient_orders_to_csv(filters):
+def export_login_users_to_csv(filters):
     try:
-        collection = get_collection("patientorders")
-        visitid = filters.get("visitid")
-        orguid = filters.get("orguid")
-        print(visitid)
-        print(orguid)
-        # print(get_pipeline(visitid, orguid))
-        cursor = list(collection.aggregate(get_pipeline(visitid, orguid)))
-        print("here!")
+        collection = get_collection("loginsessions")
+        start_date = filters.get("start_date")
+        end_date = filters.get("end_date")
+        # print(get_pipeline(start_date, end_date))
+        cursor = list(collection.aggregate(get_pipeline(start_date, end_date)))
         # or dynamic path
-        file_path = f"patient_orders-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        file_path = f"Login Users-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
 
         df = pd.DataFrame(list(cursor))
         print(list(cursor))

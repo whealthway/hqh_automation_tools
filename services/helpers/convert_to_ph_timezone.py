@@ -5,7 +5,7 @@ def update_to_ph_datetime(date_time):
             "if": {"$eq": [{"$type": date_time}, "date"]},
             "then":  {
                 "$dateToString": {
-                    "format": "%d-%m-%Y %H:%M",
+                    "format": "%Y-%m-%d %H:%M:%S",
                     "date": date_time,
                     "timezone": "Asia/Manila"
                 }
