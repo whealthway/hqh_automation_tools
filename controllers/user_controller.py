@@ -1,5 +1,4 @@
-from services.user_service import authenticate_user
-from models.user import User
+from services.user_service import authenticate_user, authenticate_user_verification_code
 
 
 def login_user(username, password):
@@ -12,3 +11,9 @@ def login_user(username, password):
         return None
 
     return user_data
+
+
+def verify_code(username, code):
+    is_code_verified = authenticate_user_verification_code(username, code)
+
+    return is_code_verified

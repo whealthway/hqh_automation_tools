@@ -1,13 +1,15 @@
 from .projection import LoginSessions
+from bson import ObjectId
 
 
-def get_pipeline(start_date, end_date):
+def get_pipeline(start_date, end_date, orguid):
     return [
         {
             '$match': {
+                "orguid": ObjectId(orguid),
                 'logindate': {
                     '$gte': start_date,
-                    '$lte': end_date
+                    '$lt': end_date
                 },
                 'useruid': {'$exists': True}
             }

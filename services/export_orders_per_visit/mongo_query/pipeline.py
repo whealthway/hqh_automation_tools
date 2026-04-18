@@ -4,7 +4,7 @@ from bson import ObjectId
 
 
 def get_pipeline(visitid, orguid):
-    print(f"HERE! {ObjectId(orguid)}")
+
     return [
         {
             "$match": {"orguid": ObjectId(orguid)}

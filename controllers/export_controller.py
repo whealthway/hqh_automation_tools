@@ -6,8 +6,8 @@ from services.export_service import (export_patient_orders, export_login_users)
 #     add_task(export_to_csv, user, filters)
 
 
-def export_data_async(filters):
-    add_task(export_patient_orders, filters)
+def export_data_async(filters, callback):
+    add_task(export_patient_orders, filters, callback)
 
 
 def export_data_async_login_users(filters):
