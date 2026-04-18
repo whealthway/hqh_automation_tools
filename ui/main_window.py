@@ -1,3 +1,6 @@
+import os
+import sys
+
 import tkinter as tk
 from tkinter import ttk
 
@@ -6,7 +9,7 @@ from core.plugin_loader import load_plugins
 
 # Built-in Tabs
 from ui.export_tab import ExportTab
-from ui.dashboard_tab import DashboardTab
+# from ui.dashboard_tab import DashboardTab
 from ui.export_login_users import ExportLoginUsersTab
 # from ui.user_tab import UserTab  # Uncomment when ready
 
@@ -45,16 +48,28 @@ class MainWindow:
 
         title = tk.Label(
             header,
-            text="Automation Dashboard",
+            text="Dev Tool Dashboard",
             font=("Arial", 14, "bold"),
-            bg=header.cget("bg")
+            bg=header.cget("bg"),
+            fg='white'
         )
         title.pack(side="left", padx=10)
+
+        self.export_btn = tk.Button(
+            header,
+            text="Logout",
+            command=self.handle_logout,
+            width=10,
+            bg="#3A59FF",
+            fg='white'
+        )
+        self.export_btn.pack(side="right", padx=10)
 
         user_label = tk.Label(
             header,
             text=f"Logged in as: {self.user['username']}",
-            bg=header.cget("bg")
+            bg=header.cget("bg"),
+            fg='white'
         )
         user_label.pack(side="right", padx=10)
 
@@ -80,31 +95,31 @@ class MainWindow:
         if has_permission(self.user, "export"):
             frame = tk.Frame(self.notebook)
             frame.pack(fill="x", pady=10)
-            ExportTab(frame)
+            ExportTab(frame, self.user['organisations'])
             self.notebook.add(
                 frame, text="Export Patient Orders")
 
         if has_permission(self.user, "sbu_export"):
             frame = tk.Frame(self.notebook)
             frame.pack(fill="x", pady=10)
-            ExportLoginUsersTab(frame)
+            ExportLoginUsersTab(frame, self.user['organisations'])
             self.notebook.add(frame, text="Export Login Users")
 
-        # Dashboard Tab
-        if has_permission(self.user, "dashboard"):
-            frame = tk.Frame(self.notebook)
-            DashboardTab(frame)
-            self.notebook.add(frame, text="Dashboard")
+        # # Dashboard Tab
+        # if has_permission(self.user, "dashboard"):
+        #     frame = tk.Frame(self.notebook)
+        #     DashboardTab(frame)
+        #     self.notebook.add(frame, text="Dashboard")
 
-        # Users Tab (optional future)
-        # if has_permission(self.user, "users"):
-        try:
-            from ui.user_tab import UserTab
-            frame = tk.Frame(self.notebook)
-            UserTab(frame)
-            self.notebook.add(frame, text="Users")
-        except ImportError:
-            print("UserTab not implemented yet")
+        # # Users Tab (optional future)
+        # # if has_permission(self.user, "users"):
+        # try:
+        #     from ui.user_tab import UserTab
+        #     frame = tk.Frame(self.notebook)
+        #     UserTab(frame)
+        #     self.notebook.add(frame, text="Users")
+        # except ImportError:
+        #     print("UserTab not implemented yet")
 
     # -----------------------------------
     # Plugin Tabs (Dynamic)
@@ -132,6 +147,10 @@ class MainWindow:
 
         except Exception as e:
             print("Plugin loading failed:", e)
+
+    def handle_logout(self):
+        self.root.destroy()
+        os.execl(sys.executable, sys.executable, *sys.argv)
 
     # -----------------------------------
     # Run App

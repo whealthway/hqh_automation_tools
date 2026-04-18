@@ -5,30 +5,52 @@ from tkinter import ttk
 from tkinter import messagebox
 import threading
 from tkcalendar import DateEntry
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from datetime import datetime, timedelta, date
 
 
 class ExportLoginUsersTab:
 
-    def __init__(self, parent):
+    def __init__(self, parent, organisations):
         self.frame = parent
 
+        # Date From - DateEntry
         tk.Label(self.frame, text="Date From").grid(
             row=0, column=0, padx=5, pady=20)
-        start_date = DateEntry(self.frame, date_pattern='mm-dd-yyyy')
-        start_date.grid(row=0, column=1, padx=5, pady=20)
-        start_date.set_date(datetime.today())
+        self.start_date = DateEntry(
+            self.frame,
+            date_pattern='mm-dd-yyyy',
+            width=15,
+            background='darkblue',
+            foreground='white',
+            borderwidth=2,
+            state='readonly'
+        )
+        self.start_date.grid(row=0, column=1, padx=5, pady=10)
 
+        # Set default date
+        self.start_date.set_date(date.today() - timedelta(days=7))
+        self.start_date.configure(takefocus=False)
+
+        # Date To - DateEntry
         tk.Label(self.frame, text="Date To").grid(
             row=0, column=2, padx=1, pady=20)
-        end_date = DateEntry(self.frame, date_pattern='mm-dd-yyyy')
-        end_date.grid(row=0, column=3, padx=3)
-        end_date.set_date(datetime.today() - relativedelta(days=7))
+        self.end_date = DateEntry(
+            self.frame,
+            date_pattern='mm-dd-yyyy',
+            width=15,
+            background='darkblue',
+            foreground='white',
+            borderwidth=2,
+            state='readonly'
+        )
+        self.end_date.grid(row=0, column=3, padx=5, pady=10)
+
+        # Set default date
+        self.end_date.set_date(date.today())
+        self.end_date.configure(takefocus=False)
 
         tk.Label(self.frame, text="Organisation").grid(row=0, column=4, padx=4)
         # Organisations for the dropdown
-        organisations = get_organisations()
         options = {org["name"]: org["_id"] for org in organisations}
 
         def on_select(event):
@@ -36,8 +58,6 @@ class ExportLoginUsersTab:
             selected_name = combo.get()
             # Get corresponding code
             self.selected_code = options[selected_name]
-            print(
-                f"Selected: {selected_name}, Code for query: {self.selected_code}")
 
         combo = ttk.Combobox(self.frame, values=list(options.keys()), width=50)
         combo.grid(row=0, column=5, padx=10)
@@ -48,47 +68,47 @@ class ExportLoginUsersTab:
             text="Export",
             command=self.handle_export,
             width=50,
-            bg='#7AC6D2',
+            bg='#7AC6D2'
         )
         self.export_btn.grid(row=0, column=6, padx=10)
 
     def handle_export(self):
         # Validate first before disabling
-        start_date = self.start_date.get()
-        end_date = self.end_date.get()
+        start_date = datetime.strptime(
+            self.start_date.get(), "%m-%d-%Y") - timedelta(days=1)
+        utc_start_date = start_date.replace(
+            hour=16, minute=0, second=0, microsecond=0)
+        end_date = datetime.strptime(self.end_date.get(), "%m-%d-%Y").replace(
+            hour=16, minute=0, second=0, microsecond=0)
 
-        if not start_date or not end_date:
+        orguid = getattr(self, "selected_code", None)
+
+        if not start_date or not end_date or not orguid:
             messagebox.showerror(
                 "Input Error", "Please fill up Date From and Date To")
             return
 
-        self.export_btn.config(state=tk.DISABLED)
+        self.export_btn.config(state=tk.DISABLED, bg='#d3d3d3')
 
         filters = {
-            "start_date": start_date,
-            "end_date": end_date
+            "start_date": utc_start_date,
+            "end_date": end_date,
+            "orguid": orguid
         }
 
-        # Run in background thread
-        threading.Thread(
-            target=self.run_export,
-            args=(filters,),
-            daemon=True
-        ).start()
+        self.run_export(filters)
 
     def run_export(self, filters):
         try:
-            print(filters)
             export_data_async_login_users(filters)
 
         except Exception as e:
             print("Error:", e)
 
         finally:
-            print("Export process completed.")
 
             # Re-enable button safely in main thread
             self.frame.after(
                 0,
-                lambda: self.export_btn.config(state=tk.NORMAL)
+                lambda: self.export_btn.config(state=tk.NORMAL, bg='#7AC6D2')
             )

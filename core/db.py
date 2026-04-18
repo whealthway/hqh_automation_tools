@@ -9,8 +9,17 @@ def get_collection(name):
     return db[name]
 
 
-def get_organisations():
-    return list(db["organisations"].find({}, {"_id": 1, "name": 1, "code": 1}))
+def get_organisations(loginid):
+    return list(db["users"].aggregate([
+        {'$match': {'loginid': loginid}},
+        {'$unwind': '$visitingorgs'},
+        {
+            '$project': {
+                '_id': '$uid',
+                'name': 1
+            }
+        }
+    ]))
 
 
 def get_visit_orders():

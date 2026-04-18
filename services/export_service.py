@@ -3,12 +3,13 @@ from .export_user_login.export_login_users import export_login_users_to_csv
 from .validate_user.validate_user import validate_user
 
 
-def export_patient_orders(filters):
+def export_patient_orders(filters, callback):
     try:
-        export_patient_orders_to_csv(filters)
+        result = export_patient_orders_to_csv(filters)
+        callback(result)
 
     except Exception as e:
-        raise e
+        callback({"status": "error", "message": str(e)})
 
 
 def export_login_users(filters):

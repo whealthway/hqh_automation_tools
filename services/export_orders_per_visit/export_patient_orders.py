@@ -13,33 +13,41 @@ def export_patient_orders_to_csv(filters):
         collection = get_collection("patientorders")
         visitid = filters.get("visitid")
         orguid = filters.get("orguid")
-        print(visitid)
-        print(orguid)
-        # print(get_pipeline(visitid, orguid))
+
         cursor = list(collection.aggregate(get_pipeline(visitid, orguid)))
-        print("here!")
+
         # or dynamic path
         file_path = f"patient_orders-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        if not list(cursor):
+            return {"status": "empty"}
 
         df = pd.DataFrame(list(cursor))
-        print(list(cursor))
-        df.to_csv(file_path, index=False)
-        messagebox.showinfo("Export Successful",
-                            f"Data exported to {file_path}")
+        df["TotalPrice"] = pd.to_numeric(
+            df["TotalPrice"], errors="coerce").fillna(0)
+        # ✅ TOTAL NET AMOUNT (all)
+        total_netamount = df["TotalPrice"].sum()
 
-        # ✅ LOG SUCCESS
-        # log_action(user, "EXPORT", {
-        #     "filters": filters,
-        #     "file": file_path,
-        #     "status": "SUCCESS"
-        # })
+        # ✅ EXCLUDE cancelled / discontinued
+        if "status" in df.columns:
+            df_filtered = df[~df["StatusDesc"].str.lower().isin(
+                ["Cancelled", "Discontinued"])]
+        else:
+            df_filtered = df
+
+        total_netamount_valid = df_filtered["TotalPrice"].sum()
+
+        df.to_csv(file_path, index=False)
+
+        df = df.drop('PatientOrderID', axis=1)
+
+        return {
+            "status": "success",
+            "file": file_path,
+            "data": df,
+            "total_netamount": total_netamount,
+            "total_netamount_valid": total_netamount_valid
+        }
 
     except Exception as e:
-        # ❗ LOG FAILURE
-        # log_action(user, "EXPORT", {
-        #     "filters": filters,
-        #     "error": str(e),
-        #     "status": "FAILED"
-        # })
 
         raise e
