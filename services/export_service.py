@@ -12,12 +12,14 @@ def export_patient_orders(filters, callback):
         callback({"status": "error", "message": str(e)})
 
 
-def export_login_users(filters):
+def export_login_users(filters, callback):
+
     try:
-        export_login_users_to_csv(filters)
+        result = export_login_users_to_csv(filters)
+        callback(result)
 
     except Exception as e:
-        raise e
+        callback({"status": "error", "message": str(e)})
 
 
 def validate_user_login(filters):

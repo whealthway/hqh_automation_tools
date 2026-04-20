@@ -10,5 +10,5 @@ def export_data_async(filters, callback):
     add_task(export_patient_orders, filters, callback)
 
 
-def export_data_async_login_users(filters):
-    add_task(export_login_users, filters)
+def export_data_async_login_users(filters, callback):
+    add_task(export_login_users, filters, callback)

@@ -18,6 +18,9 @@ def export_login_users_to_csv(filters):
         cursor = list(collection.aggregate(
             get_pipeline(start_date, end_date, orguid)))
 
+        if not list(cursor):
+            return {"status": "empty"}
+
         file_path = f"Login Users-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
 
         df = pd.DataFrame(list(cursor))
@@ -26,19 +29,11 @@ def export_login_users_to_csv(filters):
         messagebox.showinfo("Export Successful",
                             f"Data exported to {file_path}")
 
-        # ✅ LOG SUCCESS
-        # log_action(user, "EXPORT", {
-        #     "filters": filters,
-        #     "file": file_path,
-        #     "status": "SUCCESS"
-        # })
+        return {
+            "status": "success",
+            "file": file_path,
+            "data": df
+        }
 
     except Exception as e:
-        # ❗ LOG FAILURE
-        # log_action(user, "EXPORT", {
-        #     "filters": filters,
-        #     "error": str(e),
-        #     "status": "FAILED"
-        # })
-
         raise e
