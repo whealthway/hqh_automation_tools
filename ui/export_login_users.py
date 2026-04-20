@@ -85,7 +85,7 @@ class ExportLoginUsersTab:
 
         if not start_date or not end_date or not orguid:
             messagebox.showerror(
-                "Input Error", "Please fill up Date From and Date To")
+                "Input Error", "Please fill up Date From,  Date To, and Organisation")
             return
 
         self.export_btn.config(state=tk.DISABLED, bg='#d3d3d3')
@@ -96,19 +96,19 @@ class ExportLoginUsersTab:
             "orguid": orguid
         }
 
-        self.run_export(filters)
+        export_data_async_login_users(filters, self.on_export_done)
 
-    def run_export(self, filters):
-        try:
-            export_data_async_login_users(filters)
+    def on_export_done(self, result):
+        # Ensure UI thread
+        self.frame.after(0, self._update_ui_after_export, result)
 
-        except Exception as e:
-            print("Error:", e)
+    def _update_ui_after_export(self, result):
+        self.export_btn.config(state=tk.NORMAL, bg='#7AC6D2')
 
-        finally:
+        if result["status"] == "empty":
+            messagebox.showwarning("No Data", "No data found.")
+            return
 
-            # Re-enable button safely in main thread
-            self.frame.after(
-                0,
-                lambda: self.export_btn.config(state=tk.NORMAL, bg='#7AC6D2')
-            )
+        if result["status"] == "error":
+            messagebox.showerror("Error", result["message"])
+            return
