@@ -6,11 +6,13 @@ from tkinter import ttk
 
 from core.auth import has_permission
 from core.plugin_loader import load_plugins
+from core.task_queue import stop_worker
 
 # Built-in Tabs
 from ui.export_tab import ExportTab
 # from ui.dashboard_tab import DashboardTab
 from ui.export_login_users import ExportLoginUsersTab
+from ui.export_patient_charge_code_tab import ExportPatientChargesTab
 # from ui.user_tab import UserTab  # Uncomment when ready
 
 
@@ -21,6 +23,8 @@ class MainWindow:
         self.root = tk.Tk()
         self.root.title("Automation Tool")
         self.root.geometry("1260x780")
+        # Handle close event
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self._build_ui()
 
@@ -91,6 +95,12 @@ class MainWindow:
     # -----------------------------------
     def _load_builtin_tabs(self):
 
+        if has_permission(self.user, "export"):
+            frame = tk.Frame(self.notebook)
+            frame.pack(fill="x", pady=10)
+            ExportPatientChargesTab(frame, self.user['organisations'])
+            self.notebook.add(frame, text="Export Patient Charges")
+
         # Export Tab
         if has_permission(self.user, "export"):
             frame = tk.Frame(self.notebook)
@@ -124,6 +134,7 @@ class MainWindow:
     # -----------------------------------
     # Plugin Tabs (Dynamic)
     # -----------------------------------
+
     def _load_plugins(self):
         try:
             plugins = load_plugins()
@@ -149,8 +160,25 @@ class MainWindow:
             print("Plugin loading failed:", e)
 
     def handle_logout(self):
+        print("Logging out...")
+
+        stop_worker()
+
+        try:
+            from core.task_queue import task_queue
+            task_queue.join()
+        except Exception:
+            pass
+
         self.root.destroy()
         os.execl(sys.executable, sys.executable, *sys.argv)
+
+    def on_close(self):
+        print("Stopping worker...")
+
+        stop_worker()
+
+        self.root.destroy()
 
     # -----------------------------------
     # Run App
