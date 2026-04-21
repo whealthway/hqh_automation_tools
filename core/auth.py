@@ -1,7 +1,6 @@
 ROLE_PERMISSIONS = {
     "IT-0003": ["export", "sbu_export"],
     "IT-0005": ["export", "users", "dashboard", "sbu_export"],
-    "sbu": ["sbu_export"],
     # "manager": ["export", "dashboard"]
 }
 
